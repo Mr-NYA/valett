@@ -3,7 +3,7 @@
 
 // Type de robot
 char Device_name[255]="Valett-dev";
-char Local_name[255]="Valett";
+char Local_name[255]="Valett-dev";
 unsigned char  manufacturerData []="Y  Valett-dev";
 
 //custom boards may override default pin definitions with BLEPeripheral(PIN_REQ, PIN_RDY, PIN_RST)
@@ -37,7 +37,7 @@ int ledBlue = A1;
 int ledRed = AREF; 
 
 // Détection de fin de course gauche et droite
-boolean Detect = false;
+boolean Detect = true;
 // Capteurs de fin de course gauche et droite
 int PinStopG = A4;
 int PinStopD = A5;
@@ -57,7 +57,7 @@ unsigned int mode=1;
 
 // Délai en ms entre chaque étape de déplacement qui sera divisé par la vitesse
 // Un délai inférieur fait que le moteur ne tournera pas à vitesse 10 car delai/10 sera < 2ms
-int delai=20; 
+int delai=10; 
 // Ratio de vitesse entre le moteur horizontal et le moteur vertical
 int ratio=1;
 
@@ -164,8 +164,8 @@ void loop() {
         // lire les données envoyées par bluetooth de l'appareil
         strncpy(readbuf,(char*)moteurCharacteristic.value(),moteurCharacteristic.valueLength());
         readbuf[moteurCharacteristic.valueLength()]=0;
-        sprintf(printbuf,"Moteur <%s> %d",readbuf,moteurCharacteristic.valueLength());   
-        Serial.println(printbuf);
+        //sprintf(printbuf,"Moteur <%s> %d",readbuf,moteurCharacteristic.valueLength());   
+        //Serial.println(printbuf);
         //delay(250);    
         //faire appel à la méthode de traitement de la commande
         cmdMoteur(readbuf);   
@@ -209,7 +209,6 @@ void loop() {
         //blePeripheral.setAdvertisedServiceUuid(valettService.uuid());
         nameCharacteristic.setValue((unsigned char *)Local_name,strlen(Local_name));
       } 
-
     mvtMoteur();
     }
   // central disconnected  
@@ -246,7 +245,7 @@ void mvtMoteur(void) {
 
     if (move1 != 0 || move2 != 0) {
         int rat=ratio;
-        Serial.print(".");
+        //Serial.print(".");
         for (int x=0;x<nbstep;x++) {
             if (move1 != 0) {
               if (mode==4) stepper4(&step1,move1,Pin1,Pin2,Pin3,Pin4);
@@ -283,13 +282,13 @@ void cmdMoteur(char * array){
       if (move2 < -10) move2=-10;
       else if (move2 > 10) move2=10;
     }
-    sprintf(printbuf,"Move %d %d",move1,move2);   
-    Serial.println(printbuf);
+    //sprintf(printbuf,"Move %d %d",move1,move2);   
+    //Serial.println(printbuf);
     if (move1==0) { stop(Pin1,Pin2,Pin3,Pin4);step1=0;}
     if (move2==0) { stop(Pin5,Pin6,Pin7,Pin8);step2=0;}
     if (move1 || move2) {
       the_time=millis();
-      mvtMoteur();
+      //mvtMoteur();
     }
 }
 
@@ -399,116 +398,3 @@ void stepper4(int *step, int move,int P1, int P2, int P3, int P4) {
   if(*step>3) *step=0;
   if(*step<0) *step=3;
 }
-
-/*
-void pas_une_phase(int etape) {
-  switch(etape) {
-    case 0 : // 1000
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 1: // 0010
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 2: // 0100
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 3: // 0001
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-  }  
-}
-
-void pas_deux_phases(int etape) {
-  switch(etape) {
-    case 0 : // 1010
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 1: // 0110
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 2: // 0101
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-    case 3: // 1001
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-  }  
-}
-
-void pas_demi_pas(int etape) {
-  switch(etape) {
-    case 0 : // 1000
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 1: // 1010
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 2: // 0010
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 3: // 0110
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,HIGH);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 4: //0100
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,LOW);
-    break;
-    case 5: //0101
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,HIGH);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-    case 6: //0001
-    digitalWrite(INPUT1,LOW);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-    case 7: //1001
-    digitalWrite(INPUT1,HIGH);
-    digitalWrite(INPUT2,LOW);
-    digitalWrite(INPUT3,LOW);
-    digitalWrite(INPUT4,HIGH);
-    break;
-  }  
-}
-*/
